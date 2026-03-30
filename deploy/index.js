@@ -3,8 +3,9 @@ import { serve } from '@hono/node-server';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { writeFile, readFile } from 'node:fs/promises';
+import { writeFile, readFile, access } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
+import { constants } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const exec = promisify(execFile);
@@ -14,17 +15,46 @@ const app = new Hono();
 const PORT = process.env.PORT || 4000;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 const INFRA_DIR = process.env.INFRA_DIR || join(__dirname, '..');
+const REPOS_DIR = process.env.REPOS_DIR || join(INFRA_DIR, '..');
 
 if (!WEBHOOK_SECRET) {
   console.error('WEBHOOK_SECRET is required');
   process.exit(1);
 }
 
-// 앱 이름 → compose 디렉토리 + 서비스명 매핑
+// 앱 이름 → compose 디렉토리 + 서비스명 + 리포 정보 매핑
 const APP_MAP = {
-  'bj-auth': { composeDir: join(INFRA_DIR, 'apps/bj-auth'), service: 'bj-auth' },
-  'bj-tetris-server': { composeDir: join(INFRA_DIR, 'apps/bj-tetris'), service: 'bj-tetris-server' },
+  'bj-auth': {
+    composeDir: join(INFRA_DIR, 'apps/bj-auth'),
+    service: 'bj-auth',
+  },
+  'bj-tetris-server': {
+    composeDir: join(INFRA_DIR, 'apps/bj-tetris'),
+    service: 'bj-tetris-server',
+    repo: 'git@github.com:jscraft-work/bj-tetris.git',
+    repoDir: join(REPOS_DIR, 'bj-tetris'),
+    staticSrc: 'web',
+    staticDest: join(INFRA_DIR, 'web/tetris'),
+  },
 };
+
+async function syncRepo(app) {
+  if (!app.repo) return;
+
+  try {
+    await access(join(app.repoDir, '.git'), constants.F_OK);
+    console.log(`[repo] pulling ${app.repoDir}...`);
+    await exec('git', ['pull', 'origin', 'main'], { cwd: app.repoDir });
+  } catch {
+    console.log(`[repo] cloning ${app.repo}...`);
+    await exec('git', ['clone', app.repo, app.repoDir]);
+  }
+
+  if (app.staticSrc && app.staticDest) {
+    console.log(`[repo] syncing static files → ${app.staticDest}`);
+    await exec('rsync', ['-a', '--delete', join(app.repoDir, app.staticSrc) + '/', app.staticDest + '/']);
+  }
+}
 
 function verifySignature(secret, payload, signature) {
   if (!signature) return false;
@@ -75,6 +105,9 @@ app.post('/webhook/deploy', async (c) => {
   }
 
   async function deployApp() {
+    // 리포 clone/pull + 정적파일 동기화
+    await syncRepo(app);
+
     // .env 갱신 (env 필드가 있으면)
     if (env && typeof env === 'object') {
       const envPath = join(app.composeDir, '.env');
