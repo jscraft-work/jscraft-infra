@@ -75,14 +75,17 @@ echo "[5/7] deploy 서버 launchd 등록..."
 mkdir -p "$INSTALL_DIR/logs"
 PLIST_SRC="$INSTALL_DIR/jscraft-infra/deploy/com.jscraft.deploy.plist"
 PLIST_DEST="/Library/LaunchDaemons/com.jscraft.deploy.plist"
-sudo cp "$PLIST_SRC" "$PLIST_DEST"
+
+# 기존 서비스 해제 (있으면)
 if sudo launchctl list | grep -q com.jscraft.deploy; then
-  sudo launchctl kickstart -k system/com.jscraft.deploy
-  echo "  → deploy 서버 재시작됨"
-else
-  sudo launchctl load "$PLIST_DEST"
-  echo "  → deploy 서버 등록 및 시작됨"
+  sudo launchctl bootout system/com.jscraft.deploy 2>/dev/null || true
+  echo "  → 기존 서비스 해제됨"
 fi
+
+# 새 plist 복사 + 등록
+sudo cp "$PLIST_SRC" "$PLIST_DEST"
+sudo launchctl bootstrap system "$PLIST_DEST"
+echo "  → deploy 서버 등록 및 시작됨"
 
 # 6. Docker 네트워크 생성
 echo "[6/7] Docker 네트워크 확인..."
