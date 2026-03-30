@@ -28,19 +28,6 @@ services:
     networks:
       - jscraft
 
-  deploy:
-    build: ../deploy
-    restart: unless-stopped
-    environment:
-      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
-      COMPOSE_DIR: /infra
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    ports:
-      - "4000:4000"
-    networks:
-      - jscraft
-
 volumes:
   postgres-data:
 

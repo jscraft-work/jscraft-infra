@@ -1,0 +1,69 @@
+name: Env Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target: infra, bj-auth, bj-tetris-server'
+        required: true
+        type: choice
+        options:
+          - infra
+          - bj-auth
+          - bj-tetris-server
+      restart:
+        description: 'Restart services after sync'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build env payload
+        id: payload
+        run: |
+          if [ "${{ inputs.target }}" = "infra" ]; then
+            ENV_JSON=$(jq -n \
+              --arg db_user "${{ secrets.DB_USERNAME }}" \
+              --arg db_pass "${{ secrets.DB_PASSWORD }}" \
+              --arg alt_dist "${{ secrets.ALT_FAST_DIST }}" \
+              '{DB_USERNAME: $db_user, DB_PASSWORD: $db_pass, ALT_FAST_DIST: $alt_dist}')
+          elif [ "${{ inputs.target }}" = "bj-auth" ]; then
+            ENV_JSON=$(jq -n \
+              --arg ghcr "${{ secrets.GHCR_OWNER }}" \
+              --arg db_url "jdbc:postgresql://postgres:5432/bj_auth" \
+              --arg db_user "${{ secrets.DB_USERNAME }}" \
+              --arg db_pass "${{ secrets.DB_PASSWORD }}" \
+              --arg cors "${{ secrets.CORS_ALLOWED_ORIGINS }}" \
+              --arg redirect "${{ secrets.OAUTH_REDIRECT_URI }}" \
+              --arg logout_redirect "${{ secrets.OAUTH_POST_LOGOUT_REDIRECT_URI }}" \
+              '{GHCR_OWNER: $ghcr, SPRING_PROFILES_ACTIVE: "prod", DB_URL: $db_url, DB_USERNAME: $db_user, DB_PASSWORD: $db_pass, CORS_ALLOWED_ORIGINS: $cors, OAUTH_REDIRECT_URI: $redirect, OAUTH_POST_LOGOUT_REDIRECT_URI: $logout_redirect, JWK_KEY_FILE: "/app/keys/jwk-keyset.json"}')
+          elif [ "${{ inputs.target }}" = "bj-tetris-server" ]; then
+            ENV_JSON=$(jq -n \
+              --arg ghcr "${{ secrets.GHCR_OWNER }}" \
+              --arg db_url "jdbc:postgresql://postgres:5432/bj_tetris" \
+              --arg db_user "${{ secrets.DB_USERNAME }}" \
+              --arg db_pass "${{ secrets.DB_PASSWORD }}" \
+              --arg auth_issuer "${{ secrets.AUTH_ISSUER }}" \
+              --arg frontend_url "${{ secrets.FRONTEND_BASE_URL }}" \
+              '{GHCR_OWNER: $ghcr, SPRING_PROFILES_ACTIVE: "prod", DB_URL: $db_url, DB_USERNAME: $db_user, DB_PASSWORD: $db_pass, AUTH_ISSUER: $auth_issuer, AUTH_AUTHORIZE_ENDPOINT: ($auth_issuer + "/oauth2/authorize"), AUTH_TOKEN_ENDPOINT: "http://bj-auth:9000/oauth2/token", AUTH_USERINFO_ENDPOINT: "http://bj-auth:9000/userinfo", AUTH_END_SESSION_ENDPOINT: ($auth_issuer + "/connect/logout"), FRONTEND_BASE_URL: $frontend_url, SESSION_COOKIE_SECURE: "true"}')
+          fi
+
+          PAYLOAD=$(jq -n \
+            --arg target "${{ inputs.target }}" \
+            --argjson restart ${{ inputs.restart }} \
+            --argjson env "$ENV_JSON" \
+            '{target: $target, env: $env, restart: $restart}')
+
+          echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
+
+      - name: Send env-sync webhook
+        run: |
+          PAYLOAD='${{ steps.payload.outputs.payload }}'
+          SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "${{ secrets.WEBHOOK_SECRET }}" | awk '{print "sha256=" $2}')
+          curl -sf -X POST "${{ secrets.DEPLOY_WEBHOOK_URL }}/webhook/env-sync" \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: $SIGNATURE" \
+            -d "$PAYLOAD"

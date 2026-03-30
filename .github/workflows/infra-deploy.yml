@@ -1,0 +1,18 @@
+name: Infra Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger infra update
+        run: |
+          PAYLOAD='{"trigger":"infra-deploy"}'
+          SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "${{ secrets.WEBHOOK_SECRET }}" | awk '{print "sha256=" $2}')
+          curl -sf -X POST "${{ secrets.DEPLOY_WEBHOOK_URL }}/webhook/infra-update" \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: $SIGNATURE" \
+            -d "$PAYLOAD"
