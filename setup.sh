@@ -4,6 +4,9 @@ set -e
 # jscraft-infra 초기 세팅 스크립트
 # macOS (맥미니) 서버용
 
+# sudo 비밀번호 미리 캐시
+sudo -v
+
 INSTALL_DIR="/opt/jscraft"
 REPO_URL="git@github.com:jscraft-work/jscraft-infra.git"
 
