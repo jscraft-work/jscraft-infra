@@ -15,6 +15,17 @@ services:
     networks:
       - jscraft
 
+  redis:
+    container_name: redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - jscraft
+
   nginx:
     image: nginx:alpine
     restart: unless-stopped
@@ -31,6 +42,7 @@ services:
 
 volumes:
   postgres-data:
+  redis-data:
 
 networks:
   jscraft:
