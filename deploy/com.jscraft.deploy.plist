@@ -6,7 +6,7 @@
     <string>com.jscraft.deploy</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/opt/homebrew/bin/node</string>
+        <string>/Users/jongsoobae/.nvm/versions/node/v24.14.0/bin/node</string>
         <string>--env-file=/opt/jscraft/jscraft-infra/deploy/.env</string>
         <string>/opt/jscraft/jscraft-infra/deploy/index.js</string>
     </array>
