@@ -1,0 +1,14 @@
+services:
+  bj-tetris-server:
+    image: ghcr.io/${GHCR_OWNER}/bj-tetris-server:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "9001:9001"
+    networks:
+      - jscraft
+
+networks:
+  jscraft:
+    external: true

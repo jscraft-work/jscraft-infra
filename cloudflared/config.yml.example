@@ -1,0 +1,27 @@
+# 참고용 — 실제 파일은 /etc/cloudflared/config.yml
+# 기존 ingress에 아래 4개 추가
+
+ingress:
+  - hostname: auth.jscraft.work
+    service: http://localhost:9000
+
+  - hostname: tetris.jscraft.work
+    service: http://localhost:8080
+
+  - hostname: tetris-api.jscraft.work
+    service: http://localhost:9001
+
+  - hostname: deploy.jscraft.work
+    service: http://localhost:4000
+
+  # 기존
+  - hostname: alt.jscraft.work
+    service: http://localhost:8080
+
+  - hostname: jscraft.work
+    service: http://localhost:8080
+
+  - hostname: ssh.jscraft.work
+    service: ssh://localhost:22
+
+  - service: http_status:404

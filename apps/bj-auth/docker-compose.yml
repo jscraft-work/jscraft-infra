@@ -1,0 +1,19 @@
+services:
+  bj-auth:
+    image: ghcr.io/${GHCR_OWNER}/bj-auth:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+    volumes:
+      - jwk-keys:/app/keys
+    networks:
+      - jscraft
+
+volumes:
+  jwk-keys:
+
+networks:
+  jscraft:
+    external: true
