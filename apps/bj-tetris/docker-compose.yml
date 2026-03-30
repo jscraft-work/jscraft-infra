@@ -1,5 +1,6 @@
 services:
   bj-tetris-server:
+    container_name: bj-tetris-server
     image: ghcr.io/${GHCR_OWNER}/bj-tetris-server:latest
     restart: unless-stopped
     env_file:

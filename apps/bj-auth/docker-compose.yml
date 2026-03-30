@@ -1,5 +1,6 @@
 services:
   bj-auth:
+    container_name: bj-auth
     image: ghcr.io/${GHCR_OWNER}/bj-auth:latest
     restart: unless-stopped
     env_file:
