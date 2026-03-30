@@ -67,8 +67,22 @@ cd deploy
 npm install
 cd ..
 
-# 5. Docker 네트워크 생성
-echo "[5/6] Docker 네트워크 확인..."
+# 5. deploy 서버 launchd 등록
+echo "[5/7] deploy 서버 launchd 등록..."
+mkdir -p "$INSTALL_DIR/logs"
+PLIST_SRC="$INSTALL_DIR/jscraft-infra/deploy/com.jscraft.deploy.plist"
+PLIST_DEST="/Library/LaunchDaemons/com.jscraft.deploy.plist"
+sudo cp "$PLIST_SRC" "$PLIST_DEST"
+if sudo launchctl list | grep -q com.jscraft.deploy; then
+  sudo launchctl kickstart -k system/com.jscraft.deploy
+  echo "  → deploy 서버 재시작됨"
+else
+  sudo launchctl load "$PLIST_DEST"
+  echo "  → deploy 서버 등록 및 시작됨"
+fi
+
+# 6. Docker 네트워크 생성
+echo "[6/7] Docker 네트워크 확인..."
 if ! docker network inspect jscraft >/dev/null 2>&1; then
   docker network create jscraft
   echo "  → jscraft 네트워크 생성됨"
@@ -76,7 +90,7 @@ else
   echo "  → jscraft 네트워크 이미 존재"
 fi
 
-# 6. 안내
+# 7. 안내
 echo ""
 echo "=== 세팅 완료 ==="
 echo ""
