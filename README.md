@@ -24,7 +24,6 @@ jscraft-infra/
 ├── nginx/                 # Nginx 설정 파일
 ├── postgres/              # DB 초기화 스크립트
 ├── deploy/                # 배포 웹훅 서버 (Hono/Node.js)
-├── cloudflared/           # 터널 설정 참고
 ├── docs/                  # 문서
 │   └── deployment.md      # 배포 구조 및 프로세스
 ├── setup.sh               # 서버 초기 세팅 스크립트
