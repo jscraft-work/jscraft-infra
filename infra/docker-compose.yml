@@ -9,7 +9,7 @@ services:
       POSTGRES_DB: bj_auth
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ../postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ../postgres:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     networks:
