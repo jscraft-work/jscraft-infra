@@ -12,6 +12,11 @@
     </array>
     <key>UserName</key>
     <string>jongsoobae</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
     <key>WorkingDirectory</key>
     <string>/opt/jscraft/jscraft-infra/deploy</string>
     <key>RunAtLoad</key>
