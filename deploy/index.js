@@ -48,7 +48,9 @@ const APP_MAP = {
     service: 'bj-tetris-server',
     repo: 'git@github.com:jscraft-work/bj-tetris.git',
     repoDir: join(REPOS_DIR, 'bj-tetris'),
-    staticSrc: 'web',
+    buildDir: 'web',
+    buildCmd: ['npm', ['run', 'build']],
+    staticSrc: 'web/dist',
     staticDest: join(INFRA_DIR, 'web/tetris'),
   },
 };
@@ -63,6 +65,14 @@ async function syncRepo(app) {
   } catch {
     console.log(`[repo] cloning ${app.repo}...`);
     await exec('git', ['clone', app.repo, app.repoDir]);
+  }
+
+  if (app.buildCmd) {
+    const buildCwd = join(app.repoDir, app.buildDir);
+    console.log(`[repo] installing dependencies...`);
+    await exec('npm', ['install'], { cwd: buildCwd });
+    console.log(`[repo] building...`);
+    await exec(app.buildCmd[0], app.buildCmd[1], { cwd: buildCwd });
   }
 
   if (app.staticSrc && app.staticDest) {
