@@ -10,6 +10,8 @@
         <string>--env-file=/opt/jscraft/jscraft-infra/deploy/.env</string>
         <string>/opt/jscraft/jscraft-infra/deploy/index.js</string>
     </array>
+    <key>UserName</key>
+    <string>jongsoobae</string>
     <key>WorkingDirectory</key>
     <string>/opt/jscraft/jscraft-infra/deploy</string>
     <key>RunAtLoad</key>
