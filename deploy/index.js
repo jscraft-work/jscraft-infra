@@ -16,6 +16,21 @@ const PORT = process.env.PORT || 4000;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 const INFRA_DIR = process.env.INFRA_DIR || join(__dirname, '..');
 const REPOS_DIR = process.env.REPOS_DIR || join(INFRA_DIR, '..');
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+async function notify(msg) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg }),
+    });
+  } catch {
+    console.error('[telegram] failed to send notification');
+  }
+}
 
 if (!WEBHOOK_SECRET) {
   console.error('WEBHOOK_SECRET is required');
@@ -125,10 +140,12 @@ app.post('/webhook/deploy', async (c) => {
     await exec('docker', ['compose', 'up', '-d', app.service], { cwd: app.composeDir });
 
     console.log(`[deploy] ${app.service} deployed successfully`);
+    await notify(`[DEPLOY OK] ${app.key} 배포 완료`);
   }
 
   deployApp().catch((err) => {
     console.error(`[deploy] ${app.key} failed: ${err.message}`);
+    notify(`[DEPLOY FAIL] ${app.key} 배포 실패: ${err.message}`);
   });
 
   return c.json({ status: 'deploying', service: app.service });
@@ -169,10 +186,12 @@ app.post('/webhook/infra-update', async (c) => {
     await exec('docker', ['compose', 'exec', 'nginx', 'nginx', '-s', 'reload'], { cwd: infraComposeDir });
 
     console.log('[infra-update] done');
+    await notify('[INFRA OK] 인프라 업데이트 완료');
   }
 
   updateInfra().catch((err) => {
     console.error(`[infra-update] failed: ${err.message}`);
+    notify(`[INFRA FAIL] 인프라 업데이트 실패: ${err.message}`);
   });
 
   return c.json({ status: 'updating' });
