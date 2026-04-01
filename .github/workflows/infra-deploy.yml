@@ -8,11 +8,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger infra update
+      - name: Sync env + deploy
         run: |
-          PAYLOAD='{"trigger":"infra-deploy"}'
-          SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "${{ secrets.WEBHOOK_SECRET }}" | awk '{print "sha256=" $2}')
+          ENV_PAYLOAD=$(jq -nc --argjson env '${{ toJSON(secrets) }}' '{target: "infra", env: $env, restart: false}')
+          ENV_SIG=$(echo -n "$ENV_PAYLOAD" | openssl dgst -sha256 -hmac "${{ secrets.WEBHOOK_SECRET }}" | awk '{print "sha256=" $2}')
+          curl -sf -X POST "${{ secrets.DEPLOY_WEBHOOK_URL }}/webhook/env-sync" \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: $ENV_SIG" \
+            -d "$ENV_PAYLOAD"
+
+          DEPLOY_PAYLOAD='{"trigger":"infra-deploy"}'
+          DEPLOY_SIG=$(echo -n "$DEPLOY_PAYLOAD" | openssl dgst -sha256 -hmac "${{ secrets.WEBHOOK_SECRET }}" | awk '{print "sha256=" $2}')
           curl -sf -X POST "${{ secrets.DEPLOY_WEBHOOK_URL }}/webhook/infra-update" \
             -H "Content-Type: application/json" \
-            -H "X-Hub-Signature-256: $SIGNATURE" \
-            -d "$PAYLOAD"
+            -H "X-Hub-Signature-256: $DEPLOY_SIG" \
+            -d "$DEPLOY_PAYLOAD"
