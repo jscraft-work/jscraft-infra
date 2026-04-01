@@ -28,12 +28,16 @@ async function notify(msg) {
       body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg }),
     });
   } catch {
-    console.error('[telegram] failed to send notification');
+    log('[telegram] failed to send notification');
   }
 }
 
+function log(msg) {
+  log(`[${new Date().toISOString()}] ${msg}`);
+}
+
 if (!WEBHOOK_SECRET) {
-  console.error('WEBHOOK_SECRET is required');
+  log('WEBHOOK_SECRET is required');
   process.exit(1);
 }
 
@@ -60,23 +64,23 @@ async function syncRepo(app) {
 
   try {
     await access(join(app.repoDir, '.git'), constants.F_OK);
-    console.log(`[repo] pulling ${app.repoDir}...`);
-    await exec('git', ['pull', 'origin', 'main'], { cwd: app.repoDir });
+    log(`[repo] pulling ${app.repoDir}...`);
+    await exec('git', ['pull', '--rebase', 'origin', 'main'], { cwd: app.repoDir });
   } catch {
-    console.log(`[repo] cloning ${app.repo}...`);
+    log(`[repo] cloning ${app.repo}...`);
     await exec('git', ['clone', app.repo, app.repoDir]);
   }
 
   if (app.buildCmd) {
     const buildCwd = join(app.repoDir, app.buildDir);
-    console.log(`[repo] installing dependencies...`);
+    log(`[repo] installing dependencies...`);
     await exec('npm', ['install'], { cwd: buildCwd });
-    console.log(`[repo] building...`);
+    log(`[repo] building...`);
     await exec(app.buildCmd[0], app.buildCmd[1], { cwd: buildCwd });
   }
 
   if (app.staticSrc && app.staticDest) {
-    console.log(`[repo] syncing static files → ${app.staticDest}`);
+    log(`[repo] syncing static files → ${app.staticDest}`);
     await exec('rsync', ['-a', '--delete', join(app.repoDir, app.staticSrc) + '/', app.staticDest + '/']);
   }
 }
@@ -140,21 +144,21 @@ app.post('/webhook/deploy', async (c) => {
         .map(([k, v]) => `${k}=${v}`)
         .join('\n') + '\n';
       await writeFile(envPath, envContent);
-      console.log(`[deploy] ${app.key} .env updated`);
+      log(`[deploy] ${app.key} .env updated`);
     }
 
-    console.log(`[deploy] pulling ${app.service}...`);
+    log(`[deploy] pulling ${app.service}...`);
     await exec('docker', ['compose', 'pull', app.service], { cwd: app.composeDir });
 
-    console.log(`[deploy] restarting ${app.service}...`);
+    log(`[deploy] restarting ${app.service}...`);
     await exec('docker', ['compose', 'up', '-d', app.service], { cwd: app.composeDir });
 
-    console.log(`[deploy] ${app.service} deployed successfully`);
+    log(`[deploy] ${app.service} deployed successfully`);
     await notify(`[DEPLOY OK] ${app.key} 배포 완료`);
   }
 
   deployApp().catch((err) => {
-    console.error(`[deploy] ${app.key} failed: ${err.message}`);
+    log(`[deploy] ${app.key} failed: ${err.message}`);
     notify(`[DEPLOY FAIL] ${app.key} 배포 실패: ${err.message}`);
   });
 
@@ -174,33 +178,33 @@ app.post('/webhook/infra-update', async (c) => {
     const plistDest = '/Library/LaunchDaemons/com.jscraft.deploy.plist';
     const plistLabel = 'com.jscraft.deploy';
 
-    console.log('[infra-update] git pull...');
-    await exec('git', ['pull', 'origin', 'main'], { cwd: INFRA_DIR });
+    log('[infra-update] git pull...');
+    await exec('git', ['pull', '--rebase', 'origin', 'main'], { cwd: INFRA_DIR });
 
     // deploy 서버 의존성 업데이트
-    console.log('[infra-update] npm install...');
+    log('[infra-update] npm install...');
     await exec('npm', ['install'], { cwd: join(INFRA_DIR, 'deploy') });
 
     // launchd plist 설치 (없으면 생성, 있으면 업데이트)
-    console.log('[infra-update] syncing launchd plist...');
+    log('[infra-update] syncing launchd plist...');
     await exec('sudo', ['cp', plistSrc, plistDest]);
 
     // deploy 서버 재시작 (자기 자신 — KeepAlive로 자동 복구)
-    console.log('[infra-update] restarting deploy server...');
+    log('[infra-update] restarting deploy server...');
     exec('sudo', ['launchctl', 'kickstart', '-k', `system/${plistLabel}`]).catch(() => {});
 
-    console.log('[infra-update] restarting infra services...');
+    log('[infra-update] restarting infra services...');
     await exec('docker', ['compose', 'up', '-d'], { cwd: infraComposeDir });
 
-    console.log('[infra-update] reloading nginx...');
+    log('[infra-update] reloading nginx...');
     await exec('docker', ['compose', 'exec', 'nginx', 'nginx', '-s', 'reload'], { cwd: infraComposeDir });
 
-    console.log('[infra-update] done');
+    log('[infra-update] done');
     await notify('[INFRA OK] 인프라 업데이트 완료');
   }
 
   updateInfra().catch((err) => {
-    console.error(`[infra-update] failed: ${err.message}`);
+    log(`[infra-update] failed: ${err.message}`);
     notify(`[INFRA FAIL] 인프라 업데이트 실패: ${err.message}`);
   });
 
@@ -253,7 +257,7 @@ app.post('/webhook/env-sync', async (c) => {
     .join('\n') + '\n';
 
   await writeFile(envPath, envContent);
-  console.log(`[env-sync] ${target} .env updated (${Object.keys(merged).length} keys)`);
+  log(`[env-sync] ${target} .env updated (${Object.keys(merged).length} keys)`);
 
   if (restart) {
     const composeDir = target === 'infra'
@@ -262,7 +266,7 @@ app.post('/webhook/env-sync', async (c) => {
 
     if (composeDir) {
       exec('docker', ['compose', 'up', '-d'], { cwd: composeDir }).catch((err) => {
-        console.error(`[env-sync] restart failed: ${err.message}`);
+        log(`[env-sync] restart failed: ${err.message}`);
       });
     }
   }
@@ -271,5 +275,5 @@ app.post('/webhook/env-sync', async (c) => {
 });
 
 serve({ fetch: app.fetch, port: PORT }, () => {
-  console.log(`Deploy server listening on port ${PORT}`);
+  log(`Deploy server listening on port ${PORT}`);
 });
