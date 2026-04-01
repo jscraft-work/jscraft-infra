@@ -174,9 +174,6 @@ app.post('/webhook/infra-update', async (c) => {
 
   async function updateInfra() {
     const infraComposeDir = join(INFRA_DIR, 'infra');
-    const plistSrc = join(INFRA_DIR, 'deploy/com.jscraft.deploy.plist');
-    const plistDest = '/Library/LaunchDaemons/com.jscraft.deploy.plist';
-    const plistLabel = 'com.jscraft.deploy';
 
     log('[infra-update] git pull...');
     await exec('git', ['pull', '--rebase', 'origin', 'main'], { cwd: INFRA_DIR });
@@ -184,14 +181,6 @@ app.post('/webhook/infra-update', async (c) => {
     // deploy 서버 의존성 업데이트
     log('[infra-update] npm install...');
     await exec('npm', ['install'], { cwd: join(INFRA_DIR, 'deploy') });
-
-    // launchd plist 설치 (없으면 생성, 있으면 업데이트)
-    log('[infra-update] syncing launchd plist...');
-    await exec('sudo', ['cp', plistSrc, plistDest]);
-
-    // deploy 서버 재시작 (자기 자신 — KeepAlive로 자동 복구)
-    log('[infra-update] restarting deploy server...');
-    exec('sudo', ['launchctl', 'kickstart', '-k', `system/${plistLabel}`]).catch(() => {});
 
     log('[infra-update] restarting infra services...');
     await exec('docker', ['compose', 'up', '-d'], { cwd: infraComposeDir });
