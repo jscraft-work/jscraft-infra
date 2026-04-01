@@ -188,8 +188,9 @@ app.post('/webhook/infra-update', async (c) => {
     log('[infra-update] reloading nginx...');
     await exec('docker', ['compose', 'exec', 'nginx', 'nginx', '-s', 'reload'], { cwd: infraComposeDir });
 
-    log('[infra-update] done');
+    log('[infra-update] restarting deploy server...');
     await notify('[INFRA OK] 인프라 업데이트 완료');
+    await exec('pm2', ['restart', 'ecosystem.config.js'], { cwd: join(INFRA_DIR, 'deploy') });
   }
 
   updateInfra().catch((err) => {

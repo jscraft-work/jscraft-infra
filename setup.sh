@@ -70,22 +70,23 @@ cd deploy
 npm install
 cd ..
 
-# 5. deploy 서버 launchd 등록
-echo "[5/7] deploy 서버 launchd 등록..."
+# 5. deploy 서버 pm2 등록
+echo "[5/7] deploy 서버 pm2 등록..."
 mkdir -p "$INSTALL_DIR/logs"
-PLIST_SRC="$INSTALL_DIR/jscraft-infra/deploy/com.jscraft.deploy.plist"
-PLIST_DEST="/Library/LaunchDaemons/com.jscraft.deploy.plist"
 
-# 기존 서비스 해제 (있으면)
-if sudo launchctl list | grep -q com.jscraft.deploy; then
-  sudo launchctl bootout system/com.jscraft.deploy 2>/dev/null || true
-  echo "  → 기존 서비스 해제됨"
+# pm2 설치 (없으면)
+if ! command -v pm2 &> /dev/null; then
+  npm install -g pm2
+  echo "  → pm2 설치됨"
 fi
 
-# 새 plist 복사 + 등록
-sudo cp "$PLIST_SRC" "$PLIST_DEST"
-sudo launchctl bootstrap system "$PLIST_DEST"
-echo "  → deploy 서버 등록 및 시작됨"
+# deploy 서버 시작
+cd "$INSTALL_DIR/jscraft-infra/deploy"
+pm2 start ecosystem.config.js
+pm2 startup
+pm2 save
+echo "  → deploy 서버 시작됨"
+cd "$INSTALL_DIR/jscraft-infra"
 
 # 6. Docker 네트워크 생성
 echo "[6/7] Docker 네트워크 확인..."
