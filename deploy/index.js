@@ -190,7 +190,7 @@ app.post('/webhook/infra-update', async (c) => {
 
     log('[infra-update] restarting deploy server...');
     await notify('[INFRA OK] 인프라 업데이트 완료');
-    await exec('pm2', ['restart', 'ecosystem.config.cjs'], { cwd: join(INFRA_DIR, 'deploy') });
+    await exec('pm2', ['restart', 'ecosystem.json'], { cwd: join(INFRA_DIR, 'deploy') });
   }
 
   updateInfra().catch((err) => {

@@ -82,7 +82,7 @@ fi
 
 # deploy 서버 시작
 cd "$INSTALL_DIR/jscraft-infra/deploy"
-pm2 start ecosystem.config.js
+pm2 start ecosystem.json
 pm2 startup
 pm2 save
 echo "  → deploy 서버 시작됨"
