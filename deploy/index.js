@@ -33,7 +33,8 @@ async function notify(msg) {
 }
 
 function log(msg) {
-  console.log(`[${new Date().toISOString()}] ${msg}`);
+  const ts = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+  console.log(`[${ts}] ${msg}`);
 }
 
 if (!WEBHOOK_SECRET) {

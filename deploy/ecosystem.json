@@ -2,7 +2,7 @@
   "apps": [{
     "name": "deploy",
     "script": "index.js",
-    "env_file": ".env",
+    "node_args": "--env-file=.env",
     "autorestart": true,
     "out_file": "/opt/jscraft/logs/deploy.log",
     "error_file": "/opt/jscraft/logs/deploy.error.log"
