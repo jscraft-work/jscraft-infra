@@ -1,3 +1,4 @@
 .env
 !.env.example
 web/
+deploy/node_modules/

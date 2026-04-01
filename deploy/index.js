@@ -33,7 +33,7 @@ async function notify(msg) {
 }
 
 function log(msg) {
-  log(`[${new Date().toISOString()}] ${msg}`);
+  console.log(`[${new Date().toISOString()}] ${msg}`);
 }
 
 if (!WEBHOOK_SECRET) {
