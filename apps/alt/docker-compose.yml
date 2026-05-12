@@ -1,0 +1,39 @@
+services:
+  alt-web-app:
+    container_name: alt-web-app
+    image: ghcr.io/${GHCR_OWNER}/alt:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      LOADER_MAIN: work.jscraft.alt.AltWebApplication
+    ports:
+      - "8081:8081"
+    networks:
+      - jscraft
+
+  alt-trading-worker:
+    container_name: alt-trading-worker
+    image: ghcr.io/${GHCR_OWNER}/alt:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      LOADER_MAIN: work.jscraft.alt.AltTradingWorkerApplication
+    networks:
+      - jscraft
+
+  alt-collector-worker:
+    container_name: alt-collector-worker
+    image: ghcr.io/${GHCR_OWNER}/alt:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      LOADER_MAIN: work.jscraft.alt.AltCollectorWorkerApplication
+    networks:
+      - jscraft
+
+networks:
+  jscraft:
+    external: true

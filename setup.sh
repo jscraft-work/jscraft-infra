@@ -57,6 +57,13 @@ else
   echo "  → apps/bj-tetris/.env 이미 존재"
 fi
 
+if [ ! -f apps/alt/.env ]; then
+  cp apps/alt/.env.example apps/alt/.env
+  echo "  → apps/alt/.env 생성됨 (값을 수정하세요)"
+else
+  echo "  → apps/alt/.env 이미 존재"
+fi
+
 if [ ! -f deploy/.env ]; then
   cp deploy/.env.example deploy/.env
   echo "  → deploy/.env 생성됨 (값을 수정하세요)"

@@ -58,6 +58,10 @@ const APP_MAP = {
     staticSrc: 'web/dist',
     staticDest: join(INFRA_DIR, 'web/tetris'),
   },
+  'alt': {
+    composeDir: join(INFRA_DIR, 'apps/alt'),
+    // service 미지정 시 디렉토리 전체 (alt는 web-app/trading-worker/collector-worker 3 컨테이너)
+  },
 };
 
 async function syncRepo(app) {
@@ -148,13 +152,17 @@ app.post('/webhook/deploy', async (c) => {
       log(`[deploy] ${app.key} .env updated`);
     }
 
-    log(`[deploy] pulling ${app.service}...`);
-    await exec('docker', ['compose', 'pull', app.service], { cwd: app.composeDir });
+    const pullArgs = app.service ? ['compose', 'pull', app.service] : ['compose', 'pull'];
+    const upArgs = app.service ? ['compose', 'up', '-d', app.service] : ['compose', 'up', '-d'];
+    const label = app.service || app.key;
 
-    log(`[deploy] restarting ${app.service}...`);
-    await exec('docker', ['compose', 'up', '-d', app.service], { cwd: app.composeDir });
+    log(`[deploy] pulling ${label}...`);
+    await exec('docker', pullArgs, { cwd: app.composeDir });
 
-    log(`[deploy] ${app.service} deployed successfully`);
+    log(`[deploy] restarting ${label}...`);
+    await exec('docker', upArgs, { cwd: app.composeDir });
+
+    log(`[deploy] ${label} deployed successfully`);
     await notify(`[DEPLOY OK] ${app.key} 배포 완료`);
   }
 
@@ -163,7 +171,7 @@ app.post('/webhook/deploy', async (c) => {
     notify(`[DEPLOY FAIL] ${app.key} 배포 실패: ${err.message}`);
   });
 
-  return c.json({ status: 'deploying', service: app.service });
+  return c.json({ status: 'deploying', service: app.service || app.key });
 });
 
 // 인프라 업데이트: git pull + docker compose up + nginx reload
