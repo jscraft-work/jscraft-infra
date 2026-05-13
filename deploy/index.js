@@ -60,8 +60,8 @@ const APP_MAP = {
   },
   'alt': {
     composeDir: join(INFRA_DIR, 'apps/alt'),
-    repo: 'git@github.com:jscraft-work/alt-java.git',
-    repoDir: join(REPOS_DIR, 'alt-java'),
+    repo: 'git@github.com:jscraft-work/alt.git',
+    repoDir: join(REPOS_DIR, 'alt'),
     buildDir: 'frontend',
     buildCmd: ['npm', ['run', 'build']],
     staticSrc: 'frontend/dist',
