@@ -32,7 +32,7 @@ services:
     volumes:
       - ../nginx:/etc/nginx/conf.d:ro
       - ../web/tetris:/usr/share/nginx/html/tetris:ro
-      - ${ALT_FAST_DIST}:/usr/share/nginx/html/alt:ro
+      - ../web/alt:/usr/share/nginx/html/alt:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

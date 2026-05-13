@@ -11,6 +11,7 @@ Docker Compose 기반으로 서비스를 운영하며, GitHub Actions + Webhook 
 | bj-auth | https://auth.jscraft.work | OAuth2 인증 서버 (Spring Boot) |
 | bj-tetris | https://tetris.jscraft.work | 테트리스 게임 (프론트엔드) |
 | bj-tetris API | https://tetris-api.jscraft.work | 테트리스 백엔드 (Spring Boot) |
+| alt | https://alt.jscraft.work | alt 프론트엔드 + API |
 | deploy | https://deploy.jscraft.work | 배포 웹훅 서버 (Hono) |
 
 ## 구조
@@ -20,8 +21,10 @@ jscraft-infra/
 ├── infra/                 # 공유 인프라 (PostgreSQL, Redis, Nginx)
 ├── apps/
 │   ├── bj-auth/           # bj-auth 앱 compose + .env
-│   └── bj-tetris/         # bj-tetris 앱 compose + .env
+│   ├── bj-tetris/         # bj-tetris 앱 compose + .env
+│   └── alt/               # alt 앱 compose + .env
 ├── nginx/                 # Nginx 설정 파일
+├── web/                   # 정적 프론트엔드 산출물 sync 대상
 ├── postgres/              # DB 초기화 스크립트
 ├── deploy/                # 배포 웹훅 서버 (Hono/Node.js)
 ├── docs/                  # 문서

@@ -60,6 +60,12 @@ const APP_MAP = {
   },
   'alt': {
     composeDir: join(INFRA_DIR, 'apps/alt'),
+    repo: 'git@github.com:jscraft-work/alt-java.git',
+    repoDir: join(REPOS_DIR, 'alt-java'),
+    buildDir: 'frontend',
+    buildCmd: ['npm', ['run', 'build']],
+    staticSrc: 'frontend/dist',
+    staticDest: join(INFRA_DIR, 'web/alt'),
     // service 미지정 시 디렉토리 전체 (alt는 web-app/trading-worker/collector-worker 3 컨테이너)
   },
 };
