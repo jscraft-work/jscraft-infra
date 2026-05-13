@@ -168,6 +168,11 @@ app.post('/webhook/deploy', async (c) => {
     log(`[deploy] restarting ${label}...`);
     await exec('docker', upArgs, { cwd: app.composeDir });
 
+    // nginx가 시작 시 한 번만 upstream hostname을 resolve해서 새 컨테이너 IP를 못 잡는 케이스 회피.
+    log(`[deploy] reloading nginx...`);
+    await exec('docker', ['compose', 'exec', 'nginx', 'nginx', '-s', 'reload'],
+               { cwd: join(INFRA_DIR, 'infra') });
+
     log(`[deploy] ${label} deployed successfully`);
     await notify(`[DEPLOY OK] ${app.key} 배포 완료`);
   }
