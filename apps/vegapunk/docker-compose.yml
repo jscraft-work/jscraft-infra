@@ -1,15 +1,28 @@
 services:
   vegapunk:
     container_name: vegapunk
-    image: ghcr.io/${GHCR_OWNER}/vegapunk:latest
+    image: ghcr.io/jscraft-work/vegapunk:latest
     restart: unless-stopped
-    env_file:
-      - .env
     ports:
       - "9002:8000"
     # 호스트 LLM 래퍼(127.0.0.1:18000)를 host.docker.internal 로 호출
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    environment:
+      # 전부 비밀 아님(주소·설정). PKCE 공개클라이언트라 client secret 없음.
+      LLM_BASE_URL: http://host.docker.internal:18000
+      LLM_LEVEL: low
+      REDIS_URL: redis://redis:6379
+      AUTH_ENABLED: "1"
+      AUTH_BASE_URL: https://auth.jscraft.work
+      AUTH_INTERNAL_URL: http://bj-auth:9000
+      OAUTH_CLIENT_ID: vegapunk-web
+      OAUTH_REDIRECT_URI: https://vegapunk.jscraft.work/auth/callback
+      OAUTH_SCOPE: openid profile
+      ALLOWED_EMAILS: ocpek@kakao.com
+      COOKIE_SECURE: "1"
+      VEGAPUNK_DB: /app/data/vegapunk.db
+      HF_HOME: /app/models
     volumes:
       - vegapunk-data:/app/data       # sqlite (대화·페이지)
       - vegapunk-models:/app/models   # fastembed 모델 캐시 (~2.2GB, 1회 다운로드)
