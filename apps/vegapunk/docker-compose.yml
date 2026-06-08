@@ -8,6 +8,9 @@ services:
     # 호스트 LLM 래퍼(127.0.0.1:18000)를 host.docker.internal 로 호출
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # GITHUB_CLIENT_SECRET(진짜 비밀)은 env-sync가 GitHub secrets에서 .env로 주입.
+    env_file:
+      - .env
     environment:
       # 전부 비밀 아님(주소·설정). PKCE 공개클라이언트라 client secret 없음.
       LLM_BASE_URL: http://host.docker.internal:18000
@@ -20,6 +23,9 @@ services:
       OAUTH_REDIRECT_URI: https://vegapunk.jscraft.work/auth/callback
       OAUTH_SCOPE: openid profile
       COOKIE_SECURE: "1"
+      # GitHub OAuth. GITHUB_CLIENT_ID/SECRET 은 GitHub secrets → env-sync → .env.
+      GITHUB_ENABLED: "1"
+      GITHUB_REDIRECT_URI: https://vegapunk.jscraft.work/auth/callback/github
       VEGAPUNK_DB: /app/data/vegapunk.db
       HF_HOME: /app/models
     volumes:
