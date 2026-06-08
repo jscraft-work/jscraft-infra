@@ -1,0 +1,25 @@
+services:
+  vegapunk:
+    container_name: vegapunk
+    image: ghcr.io/${GHCR_OWNER}/vegapunk:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "9002:8000"
+    # 호스트 LLM 래퍼(127.0.0.1:18000)를 host.docker.internal 로 호출
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - vegapunk-data:/app/data       # sqlite (대화·페이지)
+      - vegapunk-models:/app/models   # fastembed 모델 캐시 (~2.2GB, 1회 다운로드)
+    networks:
+      - jscraft
+
+volumes:
+  vegapunk-data:
+  vegapunk-models:
+
+networks:
+  jscraft:
+    external: true

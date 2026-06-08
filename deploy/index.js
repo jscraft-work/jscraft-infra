@@ -48,6 +48,10 @@ const APP_MAP = {
     composeDir: join(INFRA_DIR, 'apps/bj-auth'),
     service: 'bj-auth',
   },
+  'vegapunk': {
+    composeDir: join(INFRA_DIR, 'apps/vegapunk'),
+    service: 'vegapunk',
+  },
   'bj-tetris-server': {
     composeDir: join(INFRA_DIR, 'apps/bj-tetris'),
     service: 'bj-tetris-server',
