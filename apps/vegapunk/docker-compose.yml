@@ -19,7 +19,6 @@ services:
       OAUTH_CLIENT_ID: vegapunk-web
       OAUTH_REDIRECT_URI: https://vegapunk.jscraft.work/auth/callback
       OAUTH_SCOPE: openid profile
-      OWNER_EMAILS: ocpek@kakao.com   # 부팅 시 users 테이블에 시드(최초 소유자)
       COOKIE_SECURE: "1"
       VEGAPUNK_DB: /app/data/vegapunk.db
       HF_HOME: /app/models
