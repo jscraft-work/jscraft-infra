@@ -8,7 +8,8 @@ services:
     # 호스트 LLM 래퍼(127.0.0.1:18000)를 host.docker.internal 로 호출
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    # GITHUB_CLIENT_SECRET(진짜 비밀)은 env-sync가 GitHub secrets에서 .env로 주입.
+    # GH_CLIENT_ID / GH_CLIENT_SECRET 은 GitHub secrets → env-sync → .env.
+    # (secret 이름은 GITHUB_ 접두사 금지라 GH_* 사용)
     env_file:
       - .env
     environment:
