@@ -15,7 +15,7 @@ services:
     environment:
       # 전부 비밀 아님(주소·설정). PKCE 공개클라이언트라 client secret 없음.
       LLM_BASE_URL: http://host.docker.internal:18000
-      LLM_LEVEL: normal   # 래퍼 허용값: normal(openclaw) / high(nanobot)
+      LLM_LEVEL: high   # nanobot(--no-markdown, raw) — 중첩 리스트 들여쓰기 보존. normal=openclaw는 평면화함
       REDIS_URL: redis://redis:6379
       AUTH_ENABLED: "1"
       AUTH_BASE_URL: https://auth.jscraft.work
